@@ -10,7 +10,7 @@ import (
 
 type URLEntry struct {
 	CreatedAt time.Time
-	ID        int64
+	ID        uint64
 	LongURL   string
 	ShortURL  string
 }
@@ -19,7 +19,7 @@ type URLShortener interface {
 	Shorten(longURL string) *URLEntry
 }
 
-type Generator func() int64
+type Generator func() uint64
 
 type shortenerImpl struct {
 	generator Generator
@@ -27,9 +27,9 @@ type shortenerImpl struct {
 
 func NewURLShortener() *shortenerImpl {
 	return &shortenerImpl{
-		generator: func() int64 {
+		generator: func() uint64 {
 			r := rand.New(rand.NewSource(time.Now().UnixNano()))
-			return r.Int63()
+			return r.Uint64()
 		},
 	}
 }
