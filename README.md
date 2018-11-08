@@ -1,4 +1,7 @@
 # go-base62
+
+[![](https://godoc.org/github.com/alextanhongpin/go-base62?status.svg)](http://godoc.org/github.com/alextanhongpin/go-base62)
+
 A simple base62 url shortener implementation
 
 ## Performance test
