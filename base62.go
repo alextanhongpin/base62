@@ -1,7 +1,7 @@
 package base62
 
 import (
-	"fmt"
+	"log"
 )
 
 // Base62 represents the base62 const.
@@ -10,69 +10,127 @@ const Base62 uint64 = 62
 var (
 	// Base62 character set, [A-Za-z0-9]. https://tools.ietf.org/html/rfc4648
 	// We follow the orders similar to base64.
-	base62Chars = [...]rune{
+	// Note that there are several different variants in the web, such as
+	// [0-9a-zA-Z] or [a-zA-Z0-9] and so on.
+	DEFAULT_CHARS = [Base62]rune{
 		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
 		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 	}
-
-	base62Map map[rune]int
+	// Base60.
+	// Alternative https://github.com/transitive-bullshit/id-shortener/blob/58eea348551eea95d662d664139abd9c13c2f449/index.js#L5
+	// 0123456789ABCDEFGHJKLMNPQRSTUVWXYZ_abcdefghijkmnopqrstuvwxyz
+	defaultLookup map[rune]int
 )
 
+// const DEFAULT = base62Chars
+
 func init() {
-	base62Map = make(map[rune]int)
-	for k, v := range base62Chars {
-		base62Map[v] = k
+	defaultLookup = make(map[rune]int, Base62)
+	for k, v := range DEFAULT_CHARS {
+		defaultLookup[v] = k
+	}
+
+}
+
+// Factory allows the creation of new base62 encoder/decoder with different
+// variant of characters.
+type Factory struct {
+	chars  [Base62]rune
+	lookup map[rune]int
+}
+
+// New returns a new Factory with the given variant of characters.
+func New(chars [Base62]rune) *Factory {
+	if uint64(len(chars)) != Base62 {
+		log.Fatal("length must be equal to 62")
+	}
+	lookup := make(map[rune]int, Base62)
+	for i, c := range chars {
+		lookup[c] = i
+	}
+	return &Factory{
+		chars:  chars,
+		lookup: lookup,
 	}
 }
 
-func main() {
-	fmt.Println("encode:", Encode(2024))
-	fmt.Println("decode:", Decode("go"))
+// Encode encodes the given integer into a base62 string.
+func (f *Factory) Encode(in uint64) string {
+	return encode(f.chars, in)
 }
 
-// EncodePerf converts the given integer into a base 62 string.
-func EncodePerf(in uint64) string {
-	i, tmp := 0, in
-	for {
-		tmp /= Base62
-		i++
-		if tmp == 0 {
-			break
-		}
-	}
-	out := make([]rune, i)
-	for {
-		i--
-		if i < 0 {
-			break
-		}
-		out[i] = base62Chars[in%62]
-		in /= Base62
-	}
-	return string(out)
+// Decode decodes the string back into integer.
+func (f *Factory) Decode(s string) uint64 {
+	return decode(f.lookup, s)
 }
 
 // Encode converts the given integer into a base 62 string.
 func Encode(in uint64) string {
-	var out []rune
-	// If set to >0, Encode(0) will return empty string.
-	for {
-		char := base62Chars[in%62]
-		out = append([]rune{char}, out...)
-		in /= Base62
-		if in == 0 {
+	return encode(DEFAULT_CHARS, in)
+}
+
+func encode(chars [Base62]rune, in uint64) string {
+	if in < 1 {
+		return ""
+	}
+	i, tmp := 0, in
+	for tmp > 0 {
+		i++
+		// This will add an additional character if not handled.
+		if tmp == Base62 {
 			break
 		}
+		tmp /= Base62
+	}
+
+	out := make([]rune, i)
+	for in > 0 {
+		i--
+		// Overflows when modulus 62 % 62. Last character, set it and
+		// break.
+		if in%Base62 == 0 {
+			out[i] = chars[Base62-1]
+			if in == Base62 {
+				break
+			}
+		} else {
+			out[i] = chars[in%Base62-1]
+		}
+		in /= Base62
 	}
 	return string(out)
 }
 
+// EncodeLegacy converts the given integer into a base 62 string. It is similar
+// to encode, but less performance. It is still kept for references.
+// func EncodeLegacy(in uint64) string {
+//         var out []rune
+//         if in == 0 {
+//                 return string(DEFAULT_CHARS[0])
+//         }
+//
+//         for in > 0 {
+//                 char := DEFAULT_CHARS[in%62]
+//                 out = append([]rune{char}, out...)
+//                 in /= Base62
+//         }
+//         return string(out)
+// }
+
 // Decode attempts to convert a base 62 string back into an integer.
-func Decode(in string) uint64 {
+func Decode(s string) uint64 {
+	return decode(defaultLookup, s)
+}
+
+func decode(lookup map[rune]int, s string) uint64 {
 	var sum uint64
-	for _, v := range in {
-		sum = sum*Base62 + uint64(base62Map[v])
+	for i, v := range s {
+		val := uint64(lookup[v] + 1)
+		if i > 0 {
+			val = val % Base62
+		}
+		sum = sum*Base62 + val
 	}
 	return sum
 }
