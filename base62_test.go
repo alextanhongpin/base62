@@ -81,6 +81,15 @@ func TestBase62(t *testing.T) {
 	}
 }
 
+func TestIncrementID(t *testing.T) {
+	for i := 0; i < 1000000; i++ {
+		id := uint64(i)
+		if got := base62.Decode(base62.Encode(id)); got != id {
+			log.Fatalf("want %v, got %v", id, got)
+		}
+	}
+}
+
 // func TestCompare(t *testing.T) {
 //         f := func(i uint64) bool {
 //                 return base62.Encode(i) == base62.EncodeLegacy(i)
