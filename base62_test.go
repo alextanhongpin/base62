@@ -92,16 +92,6 @@ func TestIncrementID(t *testing.T) {
 	}
 }
 
-// func TestCompare(t *testing.T) {
-//         f := func(i uint64) bool {
-//                 return base62.Encode(i) == base62.EncodeLegacy(i)
-//         }
-//
-//         if err := quick.Check(f, nil); err != nil {
-//                 log.Fatal(err)
-//         }
-// }
-
 // go test -bench=. -benchmem -cpuprofile cpu.out -memprofile mem.out
 func BenchmarkEncode(b *testing.B) {
 	r := rand.New(rand.NewSource(0))
@@ -109,10 +99,3 @@ func BenchmarkEncode(b *testing.B) {
 		base62.Encode(r.Uint64())
 	}
 }
-
-// func BenchmarkEncodeLegacy(b *testing.B) {
-//         r := rand.New(rand.NewSource(0))
-//         for i := 0; i < b.N; i++ {
-//                 base62.EncodeLegacy(r.Uint64())
-//         }
-// }

@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	base62 "github.com/alextanhongpin/go-base62"
+	"github.com/alextanhongpin/base62"
 )
 
 type URLEntry struct {
@@ -47,9 +47,11 @@ func (s *shortenerImpl) Shorten(longURL string) *URLEntry {
 }
 
 func main() {
-	hash := base62.Encode(0)
+
+	hash := base62.Encode(30847375997)
 	fmt.Println(hash)
 	fmt.Println(base62.Decode(hash))
+	fmt.Println(base62.Decode("golang"))
 
 	s := NewURLShortener()
 	entry := s.Shorten("http://google.com")

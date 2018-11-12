@@ -104,22 +104,6 @@ func encode(chars [Base62]rune, in uint64) string {
 	return string(out)
 }
 
-// EncodeLegacy converts the given integer into a base 62 string. It is similar
-// to encode, but less performance. It is still kept for references.
-// func EncodeLegacy(in uint64) string {
-//         var out []rune
-//         if in == 0 {
-//                 return string(DEFAULT_CHARS[0])
-//         }
-//
-//         for in > 0 {
-//                 char := DEFAULT_CHARS[in%62]
-//                 out = append([]rune{char}, out...)
-//                 in /= Base62
-//         }
-//         return string(out)
-// }
-
 // Decode attempts to convert a base 62 string back into an integer.
 func Decode(s string) uint64 {
 	return decode(defaultLookup, s)
