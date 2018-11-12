@@ -68,6 +68,9 @@ func TestBase62Conversion(t *testing.T) {
 		if got := base62.Encode(tt.ID); got != tt.Text {
 			t.Fatalf("want %v, got %v for input %v", tt.Text, got, tt.ID)
 		}
+		if got := base62.Encode(base62.Decode(tt.Text)); got != tt.Text {
+			t.Fatalf("want %v, got %v for input %v", tt.Text, got, tt.ID)
+		}
 	}
 }
 
@@ -75,7 +78,6 @@ func TestBase62(t *testing.T) {
 	f := func(key uint64) bool {
 		return base62.Decode(base62.Encode(key)) == key
 	}
-
 	if err := quick.Check(f, nil); err != nil {
 		log.Fatal(err)
 	}

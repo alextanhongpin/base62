@@ -89,8 +89,10 @@ func encode(chars [Base62]rune, in uint64) string {
 		i--
 		// Overflows when modulus 62 % 62. Last character, set it and
 		// break.
+		// Mod zero, we can't get the -1 index of char, shift it to last position 61.
 		if in%Base62 == 0 {
 			out[i] = chars[Base62-1]
+			// If we divide in by 62, we will get 1, which will repeat another cycle. Terminate it.
 			if in == Base62 {
 				break
 			}
